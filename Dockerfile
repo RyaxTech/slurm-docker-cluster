@@ -1,10 +1,10 @@
 FROM rockylinux:8
 
-LABEL org.opencontainers.image.source="https://github.com/giovtorres/slurm-docker-cluster" \
-      org.opencontainers.image.title="slurm-docker-cluster" \
-      org.opencontainers.image.description="Slurm Docker cluster on Rocky Linux 8" \
+LABEL org.opencontainers.image.source="https://github.com/RyaxTech/bebida-optimization-service" \
+      org.opencontainers.image.title="slurm-docker-cluster-bebida" \
+      org.opencontainers.image.description="Slurm Docker cluster on Rocky Linux 8 with Bebida" \
       org.label-schema.docker.cmd="docker-compose up -d" \
-      maintainer="Giovanni Torres"
+      maintainer="Michael Mercier"
 
 ARG SLURM_TAG=slurm-21-08-6-1
 ARG GOSU_VERSION=1.11
@@ -33,6 +33,8 @@ RUN set -ex \
        psmisc \
        bash-completion \
        vim-enhanced \
+       openssh-server \
+       ipvsadm \
     && yum clean all \
     && rm -rf /var/cache/yum
 
@@ -83,12 +85,28 @@ RUN set -x \
     && chown -R slurm:slurm /var/*/slurm* \
     && /sbin/create-munge-key
 
+# Add K3s client and kubectl
+RUN wget -O /usr/local/bin/k3s https://github.com/k3s-io/k3s/releases/download/v1.25.3%2Bk3s1/k3s && chmod +x /usr/local/bin/k3s
+RUN wget -O /usr/local/bin/kubectl https://dl.k8s.io/release/v1.25.3/bin/linux/amd64/kubectl && chmod +x /usr/local/bin/kubectl
+
+# Add config
 COPY slurm.conf /etc/slurm/slurm.conf
 COPY slurmdbd.conf /etc/slurm/slurmdbd.conf
 RUN set -x \
     && chown slurm:slurm /etc/slurm/slurmdbd.conf \
     && chmod 600 /etc/slurm/slurmdbd.conf
+# Bebida specific config
+COPY master-prolog.sh master-epilog.sh k3d-entrypoint-cgroupv2.sh /usr/local/bin/
+RUN set -ex \
+    && mkdir -p /usr/local/logs \
+    && chown slurm:slurm /usr/local/logs
 
+# Setup openssh-server
+RUN set -ex \
+    && mkdir -m 400 /root/.ssh \
+    && ssh-keygen -A \
+    && ssh-keygen -f /root/.ssh/id_rsa -q -N '' \
+    && cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

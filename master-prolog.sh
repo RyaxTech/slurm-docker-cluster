@@ -12,6 +12,6 @@ printenv
 export SLURM_NODELIST=$SLURM_JOB_NODELIST
 for node in $(scontrol show hostnames)
 do
-        kubectl drain --force --grace-period=5 --ignore-daemonsets --delete-emptydir-data $node
+        kubectl drain --force --grace-period=5 --ignore-daemonsets --delete-emptydir-data --insecure-skip-tls-verify $node
 done
 ) > $SCRIPT_PATH/../logs/${SLURM_JOB_ID}-prolog-logs.out 2> $SCRIPT_PATH/../logs/${SLURM_JOB_ID}-prolog-logs.err

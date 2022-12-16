@@ -23,6 +23,13 @@ fi
 
 if [ "$1" = "slurmctld" ]
 then
+    echo "---> Starting SSH Daemon"
+    /usr/sbin/sshd
+
+    echo "---> Get a valid kubeconfig for Bebida Slurm prolg/epilog"
+    cp /usr/local/etc/bebida/kubeconfig.yaml /usr/local/etc/bebida/workflow-manager-1-kubeconfig.yaml
+    sed -i 's/127.0.0.1/k3s-server/' /usr/local/etc/bebida/workflow-manager-1-kubeconfig.yaml
+
     echo "---> Starting the MUNGE Authentication service (munged) ..."
     gosu munge /usr/sbin/munged
 
@@ -45,6 +52,11 @@ fi
 
 if [ "$1" = "slurmd" ]
 then
+    echo "---> Starting k3s agent"
+    # This is needed because k3s has to be PID1 in order to cgroupv2 to work
+    /usr/local/bin/k3d-entrypoint-cgroupv2.sh
+    /usr/local/bin/k3s agent --node-name $HOSTNAME --node-label hpc=true &
+
     echo "---> Starting the MUNGE Authentication service (munged) ..."
     gosu munge /usr/sbin/munged
 

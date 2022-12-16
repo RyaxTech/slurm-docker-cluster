@@ -12,6 +12,6 @@ printenv
 export SLURM_NODELIST=$SLURM_JOB_NODELIST
 for node in $(scontrol show hostnames)
 do
-        kubectl uncordon $node
+        kubectl uncordon --insecure-skip-tls-verify $node
 done
 ) > $SCRIPT_PATH/../logs/${SLURM_JOB_ID}-epilog-logs.out 2> $SCRIPT_PATH/../logs/${SLURM_JOB_ID}-epilog-logs.err
