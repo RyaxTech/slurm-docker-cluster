@@ -9,6 +9,7 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export KUBECONFIG=$SCRIPT_PATH/../etc/bebida/workflow-manager-1-kubeconfig.yaml
 
 printenv
+
 export SLURM_NODELIST=$SLURM_JOB_NODELIST
 for node in $(scontrol show hostnames)
 do

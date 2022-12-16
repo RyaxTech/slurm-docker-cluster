@@ -9,6 +9,13 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export KUBECONFIG=$SCRIPT_PATH/../etc/bebida/workflow-manager-1-kubeconfig.yaml
 
 printenv
+
+if [ "$SLURM_JOB_NAME" = "BEBIDA_NOOP" ]
+then
+    echo BEBIDA_NOOP is set. Do not stop the kubernetes agent
+    exit 0
+fi
+
 export SLURM_NODELIST=$SLURM_JOB_NODELIST
 for node in $(scontrol show hostnames)
 do
